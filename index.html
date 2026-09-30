@@ -403,23 +403,32 @@ function flush() {
   logBuf = [];
 }
 
+// Активное время на экране: без периодов, когда вкладка была скрыта
+function activeMs() {
+  return lastScreen.active + (lastScreen.start ? Date.now() - lastScreen.start : 0);
+}
+
 // Экран сменился: записываем время на прошлом и открытие нового
 function trackScreen() {
   const step = state.step === 'compare' && isTieBreak() ? (findTie() ? 'tie' : 'result') : state.step;
   const key = step + ':' + state.ans.length + ':' + state.tb.length;
   if (lastScreen && lastScreen.key === key) return;
-  if (lastScreen) log('screen', { at: lastScreen.key, ms: Date.now() - lastScreen.start });
-  lastScreen = { key, start: Date.now() };
+  if (lastScreen) log('screen', { at: lastScreen.key, ms: activeMs() });
+  lastScreen = { key, start: document.hidden ? null : Date.now(), active: 0 };
   log('open');
   flush();
 }
 
-// Закрыл или свернул страницу
+// Закрыл или свернул страницу: ставим таймер на паузу
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden' && lastScreen) {
-    log('leave', { ms: Date.now() - lastScreen.start });
+  if (!lastScreen) return;
+  if (document.visibilityState === 'hidden') {
+    lastScreen.active = activeMs();
+    lastScreen.start = null;
+    log('leave', { ms: lastScreen.active });
     flush();
-  } else if (document.visibilityState === 'visible') {
+  } else {
+    if (!lastScreen.start) lastScreen.start = Date.now();
     log('return');
   }
 });
@@ -993,7 +1002,7 @@ document.addEventListener('keydown', e => {
    ========================================================= */
 function restart() {
   const consent = state ? state.consent : false; // после «Начать заново» галочка сохраняется
-  if (state && lastScreen) log('screen', { at: lastScreen.key, ms: Date.now() - lastScreen.start });
+  if (state && lastScreen) log('screen', { at: lastScreen.key, ms: activeMs() });
   if (state) flush();   // дослать события старого прохождения
   lastScreen = null;
   state = {
