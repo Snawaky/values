@@ -249,6 +249,11 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 }
 .body::-webkit-scrollbar-thumb:hover { background-color: var(--muted); }
 .body::-webkit-scrollbar-button { display: none; }
+  
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
 </style>
 </head>
 
