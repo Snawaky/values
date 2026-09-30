@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Топ ценностей</title>
+
+<style>
+/* ===== Цвета и шрифты ===== */
+:root {
+  --bg: #F9F8F6;
+  --paper: #FFFFFF;
+  --text: #333333;
+  --muted: #828282;
+  --line: #EBEBEB;
+  --line-d: #D1D1D1;
+  --green: #60806E;
+  --green-d: #496355;
+  --green-l: #F0F4F2;
+  --yellow: #DEB853;
+  --yellow-l: #FCF9F0;
+  --gap: 16px; /* расстояние между колонками в итогах */
+}
+
+body { 
+  margin: 0; background: var(--bg); color: var(--text); 
+  font: 16px/1.6 system-ui, -apple-system, sans-serif; 
+  -webkit-font-smoothing: antialiased;
+}
+h1 { font: 600 24px/1.3 system-ui, sans-serif; margin: 24px 0 12px; color: #222; }
+p { margin: 0 0 16px; }
+.hint { color: var(--muted); font-size: 15px; margin: 0; line-height: 1.5; }
+
+/* ===== Карточка ===== */
+.frame {
+  max-width: 680px; margin: 40px auto;
+  max-height: calc(100vh - 80px);
+  max-height: calc(100dvh - 80px);
+  background: var(--paper); 
+  border-radius: 32px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.05);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.head { flex: none; padding: 32px 40px 16px; border-bottom: 1px solid var(--line); background: var(--paper); z-index: 10; transition: box-shadow 0.3s; }
+.head .hint { min-height: 44px; } 
+.body { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 40px 32px; }
+.foot { flex: none; padding: 20px 40px 24px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 12px; background: #FAFAFA; z-index: 10; transition: box-shadow 0.3s; }
+.grow { flex: 1; }
+
+/* Тени для длинных списков */
+.step-pick .head, .step-result .head { box-shadow: 0 15px 15px -15px rgba(0, 0, 0, 0.1); }
+.step-pick .foot, .step-result .foot { box-shadow: 0 -15px 15px -15px rgba(0, 0, 0, 0.1); }
+
+/* ===== Шапка ===== */
+.row { display: flex; align-items: center; justify-content: space-between; min-height: 22px; }
+.stepno { font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.progress-count { font-size: 14px; font-weight: 600; color: var(--muted); }
+.bar { height: 6px; background: var(--line); border-radius: 3px; margin: 16px 0 0; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--green); transition: width 0.4s ease; border-radius: 3px; }
+
+/* ===== Кнопки ===== */
+button {
+  font: inherit; font-weight: 500; color: var(--text); background: var(--paper);
+  border: 1px solid var(--line-d); border-radius: 14px; padding: 12px 24px;
+  cursor: pointer; transition: all 0.2s;
+}
+button:disabled { opacity: 0.4; cursor: not-allowed; }
+button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+
+.primary { background: var(--green); color: #fff; border-color: var(--green); box-shadow: 0 4px 12px rgba(96, 128, 110, 0.2); }
+.ghost { background: none; border: none; color: var(--muted); padding: 12px; }
+.back { background: none; border: 1px solid transparent; padding: 12px 16px; color: var(--text); }
+
+/* ===== Шаг 1 ===== */
+.cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border-radius: 20px; font-size: 14px; padding: 6px 14px; font-weight: 400; background: #fff; }
+.chip:disabled { opacity: 0.4; }
+.chip.on { background: var(--green); color: #fff; border-color: var(--green); }
+
+/* Выбранные слова — отдельная плашка над кнопками */
+.tray { order: -1; flex-basis: 100%; background: var(--green-l); border-radius: 16px; padding: 10px 12px; margin-bottom: 4px; }
+.tray-h { font-size: 13px; font-weight: 600; color: var(--green-d); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; max-height: 68px; overflow-y: auto; margin-top: 8px; }
+.tags:empty { display: none; }
+.tags.more { -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent); mask-image: linear-gradient(to bottom, #000 55%, transparent); }
+.foot .tag { font-size: 13px; font-weight: 400; padding: 4px 10px; border-radius: 16px; background: #fff; border: 1px solid var(--line-d); color: var(--text); box-shadow: none; }
+.tag span { color: var(--muted); margin-left: 4px; }
+
+/* ===== Шаг 2 ===== */
+.opts-title { font-weight: 600; margin: 0 0 12px; color: var(--green); font-size: 14px; text-transform: uppercase; letter-spacing: 0.02em; text-align: left; }
+.opts-title.low { color: #B38914; }
+.opts { display: flex; flex-direction: column; gap: 8px; width: 100%; margin: 0; }
+
+.opt { 
+  width: 100%; box-sizing: border-box; 
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; 
+  text-align: left; font-size: 16px; padding: 12px 16px; 
+  border-radius: 14px; font-weight: 500; 
+  background: var(--bg); border: 1px solid transparent; 
+}
+
+.opt .k { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; color: var(--muted); background: #fff; border: none; font-weight: 600; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+
+/* Прячем текст полностью, чтобы не ломал высоту */
+.opt::after { display: none; margin-left: auto; flex: none; text-align: right; font-size: 12px; font-weight: 600; }
+.opt.on::after, .opt.no::after { display: block; }
+
+.on { background: var(--green); color: #fff; border-color: var(--green); box-shadow: 0 6px 16px rgba(96, 128, 110, 0.25); }
+.opt.on .k { color: var(--green); background: #fff; }
+.opt.on::after { content: 'Самая важная'; opacity: 0.9; }
+
+.no { background: var(--yellow-l); border-color: var(--yellow); }
+.opt.no .k { background: #fff; color: #D4A72C; }
+.opt.no::after { content: 'Наименее важная'; color: #B38914; }
+
+/* ===== Наведение ===== */
+@media (hover: hover) {
+  button:hover:not(:disabled):not(.on):not(.no):not(.ghost) { border-color: var(--muted); }
+  .primary:hover:not(:disabled) { background: var(--green-d); border-color: var(--green-d); }
+  .ghost:hover { color: var(--text); background: var(--bg); }
+  .back:hover { background: var(--bg); border-color: var(--line); }
+  .chip:hover:not(.on):not(:disabled) { background: var(--green-l); border-color: var(--green); }
+  .best .opt:hover:not(.on) { background: var(--green-l); border-color: var(--green); }
+  .worst .opt:hover:not(.on):not(.no) { background: var(--yellow-l); border-color: var(--yellow); }
+}
+
+/* ===== Результат ===== */
+.res { 
+  column-count: 2; column-gap: var(--gap);
+  list-style: none; padding: 0; margin: 0; display: block;
+}
+.res li { 
+  display: flex; gap: 10px; align-items: center; 
+  font-weight: 500; font-size: 15px; 
+  margin-bottom: 8px; break-inside: avoid;
+  min-width: 0; overflow-wrap: anywhere; hyphens: auto;
+}
+.res li .num { color: var(--muted); font-weight: 600; width: 18px; text-align: right; flex: none; }
+.res li .dot { color: var(--muted); opacity: 0.5; width: 18px; text-align: right; flex: none; }
+
+.divider { height: 1px; background: var(--line); border: none; margin: 32px 0; }
+
+.sub { font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 16px; }
+
+/* Сложный выбор: текст на одной линии с верхними блоками,
+   счёт посередине между самым длинным левым словом и правой колонкой */
+.res.conf {
+  column-count: auto; display: grid;
+  grid-template-columns: auto 1fr calc(50% - var(--gap) / 2 - 28px);
+}
+.res.conf li {
+  grid-column: 1 / -1; display: grid; grid-template-columns: subgrid;
+  align-items: center; font-weight: 400; font-size: 14px;
+  gap: 0; padding: 6px 0; margin-bottom: 0; border-bottom: 1px dashed var(--line);
+}
+.res.conf li:last-child { border-bottom: none; }
+.res.conf .v { grid-column: 1; padding-left: 28px; }
+.res.conf .score { grid-column: 2; text-align: center; padding: 0 12px; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.res.conf .r { grid-column: 3; }
+.res.conf .v, .res.conf .r { min-width: 0; overflow-wrap: anywhere; hyphens: auto; }
+
+/* ===== Поддержать автора ===== */
+.support { margin-top: 32px; padding: 24px 32px; background: var(--green-l); border-radius: 16px; display: flex; align-items: center; justify-content: space-between; gap: 24px; text-align: left; }
+.support-text { flex: 1; }
+.support .hint { font-size: 14px; color: var(--text); margin-bottom: 16px; line-height: 1.5; }
+.support-link { display: inline-block; background: #fff; color: var(--green); border: 1px solid var(--green); padding: 8px 16px; border-radius: 12px; text-decoration: none; font-weight: 500; font-size: 14px; transition: 0.2s; }
+.support-link:hover { background: var(--green); color: #fff; }
+.support-qr { flex: none; width: 100px; border-radius: 12px; mix-blend-mode: multiply; }
+
+@media (max-width: 600px) {
+  .support { flex-direction: column; text-align: center; padding: 20px; gap: 16px; }
+  .support-qr { display: none; }
+}
+
+/* ===== Телефон ===== */
+@media (max-width: 600px) {
+  :root { --gap: 12px; }
+  .frame { margin: 0; border-radius: 0; max-height: none; height: 100vh; height: 100dvh; box-shadow: none; border: none; }
+  .head { padding: 24px 20px 16px; }
+  .head .hint { min-height: 44px; } 
+  .body { padding: 16px 20px 24px; }
+  .foot { padding: 16px 20px; gap: 4px; }
+  .foot button { padding: 12px 12px; font-size: 14px; white-space: nowrap; }
+  .foot .ghost, .foot .back { padding: 12px 6px; }
+  .foot .primary { margin-left: auto; }
+  .tray { min-width: 0; max-width: 100%; }
+  .tags { flex-wrap: nowrap; overflow-x: auto; max-height: none; min-width: 0; -webkit-overflow-scrolling: touch; }
+  .tags.more { -webkit-mask-image: linear-gradient(to right, #000 75%, transparent); mask-image: linear-gradient(to right, #000 75%, transparent); }
+  .foot .tag { flex: none; }
+  h1 { font-size: 22px; margin-top: 16px; }
+  .res li { font-size: 14px; align-items: baseline; }
+  .res.conf li { align-items: center; }
+  .res.conf .score { padding: 0 8px; }
+  .support-qr { display: none; /* Скрываем QR на мобилках */ }
+}
+
+/* Запасной вариант для старых iOS (до 16) */
+@supports not (grid-template-columns: subgrid) {
+  .res.conf { display: block; }
+  .res.conf li { display: grid; grid-template-columns: 1fr auto 1fr; }
+}
+
+</style>
+</head>
+
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   НАСТРОЙКИ
+   ========================================================= */
+const NAME = 'Мои ценности';
+
+/* ↓↓↓ ПОДДЕРЖКА: вставь свою ссылку и QR-код ↓↓↓ */
+const DONATE_URL = 'https://www.tbank-online.com/rm/r_jpiQfQeTvk.KpnqcdCdtC/F8nDZ43562';   // ссылка на перевод. Если пусто '' — блок не появится
+const DONATE_QR  = 'data:image/png;base64,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';                       // QR-код в виде 'data:image/png;base64,...'. Если пусто '' — будет только ссылка
+/* ↑↑↑ ------------------------------------------ ↑↑↑ */
+
+const VALUES = `Активность,Ассертивность,Аутентичность,Баланс,Безопасность,Благодарность,Благополучие,Благородство,Близость,Вера,Взаимозависимость,Витальность,Влиятельность,Внимательность,Воображение,Воодушевлённость,Воспитание,Восхищение,Глубокомыслие,Гражданский долг,Движение,Дисциплина,Доброта,Достижения,Достоинство,Дружба,Духовность,Забота,Здоровье,Значимость,Инициатива,Интеллект,Интуиция,Искренность,Комфорт,Красота,Лёгкость,Лидерство,Любовь,Любознательность,Милосердие,Мир,Мудрость,Надёжность,Насыщенность жизни,Независимость,Общение,Объективность,Опыт,Организованность,Остроумие,Ответственность,Отзывчивость,Открытость,Поддержка,Познание,Понимание,Порядок,Порядочность,Почёт,Преданность,Приключения,Природолюбие,Причастность,Продуктивность,Простота,Прощение,Равенство,Разнообразие,Риск,Родительство,Рост,Руководство,Самовыражение,Самодостаточность,Самопознание,Самореализация,Свобода,Семья,Сила,Сострадание,Сплочённость,Спокойствие,Спонтанность,Спорт,Справедливость,Стабильность,Старание,Стойкость,Структура,Творчество,Теплота,Терпение,Толерантность,Трансцендентность,Тренированность,Уважение,Уверенность,Увлечённость,Удовольствие,Умиротворение,Усердие,Устойчивость,Уют,Храбрость,Целостность,Честь,Чистота,Чувственность,Чудесность,Экспертность,Эксклюзивность,Эмпатия,Эффективность,Эффектность,Юмор,Яркость`.split(',').map(s => s.trim()).filter(Boolean);
+const MAX = 16;
+const MIN = 5;
+const TOP = 10;
+const KEY = 'values-now-v25';
+
+let S;
+const app = document.getElementById('app');
+const $ = id => document.getElementById(id);
+document.title = NAME;
+
+/* --- Вспомогательные функции --- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const K = (a, b) => a + '\u0001' + b;
+
+const shuffle = a => {
+  const arr = a.slice();
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.random() * (i + 1) | 0;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+const load = () => { 
+  try { 
+    const x = JSON.parse(localStorage.getItem(KEY)); 
+    if (x && ['intro', 'pick', 'compare', 'result'].includes(x.step) && Array.isArray(x.order)) return x; 
+  } catch (e) {} 
+  return null; 
+};
+
+let kbuf = '', ktimer = null;
+const kclear = () => { kbuf = ''; clearTimeout(ktimer); };
+
+const render = (keep) => {
+  const bodyEl = document.querySelector('.body');
+  const y = (keep && bodyEl) ? bodyEl.scrollTop : 0;
+  
+  kclear(); save();
+  const screens = { intro, pick, compare, result };
+  screens[S.step]();
+  
+  if (keep && y && document.querySelector('.body')) document.querySelector('.body').scrollTop = y;
+};
+
+const go = s => { S.step = s; render(); };
+const date = () => new Date().toLocaleDateString('ru-RU');
+
+/* --- Шаблоны --- */
+const reset = () => `<button class="ghost" data-act="reset">Начать заново</button>`;
+const back = (act = 'undo', v = '') => `<button class="back" data-act="${act}" data-v="${v}">← Назад</button>`;
+const opt = (v, k, cls) => `<button class="opt ${cls}" data-act="choose" data-v="${esc(v)}"><span class="k">${k + 1}</span>${esc(v)}</button>`;
+
+const support = () => !DONATE_URL ? '' : `
+  <div class="support">
+    <div class="support-text">
+      <p class="hint">Надеюсь, упражнение было полезным.<br>На создание ушло много сил, поэтому буду благодарен финансовой поддержке:</p>
+      <a class="support-link" href="${esc(DONATE_URL)}" target="_blank" rel="noopener">Отправить донат</a>
+    </div>
+    ${DONATE_QR ? `<img class="support-qr" src="${DONATE_QR}" alt="QR-код для перевода">` : ''}
+  </div>`;
+
+const frame = (head, body, left, right) => {
+  app.innerHTML = `
+    <div class="frame step-${S.step}">
+      <div class="head">${head}</div>
+      <div class="body">${body}</div>
+      <div class="foot">${left}<span class="grow"></span>${right}</div>
+    </div>`;
+};
+
+/* --- Обработчики --- */
+const ACT = {
+  go, reset: () => { if (confirm('Начать заново? Ответы удалятся.')) restart(); },
+  undo, backFromResult, toggle, untick, afterPick, choose, nextSet, copy: copyRes
+};
+
+app.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if (el && !el.disabled) ACT[el.dataset.act](el.dataset.v, el);
+});
+
+/* =========================================================
+   ЭКРАНЫ
+   ========================================================= */
+
+function intro() {
+  frame(
+    `<div class="row"><span class="stepno">Введение</span></div><div class="bar"></div>`,
+    `<p>Привет.</p>
+    <p>Это упражнение поможет понять, что для тебя по-настоящему важно.</p>
+    <p>Нужно будет выбрать ценности из списка и решить, какие из них важнее на данном этапе жизни.</p>
+    <p>Прислушивайся к себе. Можно долго размышлять или выбирать первое, что придёт в голову. Главное — ориентируйся на собственные мысли и чувства, а не на то, как «должно быть».</p>
+    <p style="color: var(--muted); margin-top: 24px;">Займёт около 25 минут.</p>`,
+    '', `<button class="primary" data-act="go" data-v="pick">Начать →</button>`
+  );
+}
+
+function pick() {
+  const cloud = S.order.map(v => `<button class="chip ${S.sel.includes(v) ? 'on' : ''}" data-act="toggle" data-v="${esc(v)}">${esc(v)}</button>`).join('');
+  frame(
+    `<div class="row"><span class="stepno">Шаг 1 из 2</span></div>
+     <div class="bar"></div>
+     <h1>Какие ценности тебе ближе?</h1>
+     <p class="hint">Список длинный, пролистай его до конца и выбери не больше 16</p>`,
+    `<div class="cloud">${cloud}</div>`,
+    back('go', 'intro') + reset(), `<div class="tray"><div id="cnt" class="tray-h"></div><div id="tags" class="tags"></div></div><button id="next" class="primary" data-act="afterPick">Продолжить →</button>`
+  );
+  upd();
+}
+
+function toggle(v, el) {
+  const i = S.sel.indexOf(v);
+  if (i < 0) { if (S.sel.length >= MAX) return; S.sel.push(v); } else S.sel.splice(i, 1);
+  el.classList.toggle('on'); upd(); save();
+}
+
+function upd() {
+  const n = S.sel.length;
+  $('cnt').textContent = n === 0 ? `Пока ничего не выбрано` : 
+                         n < MIN ? `Выбрано ${n} из ${MAX} (нужно ещё хотя бы ${MIN - n})` : 
+                         n >= MAX ? `Выбрано ${MAX} из ${MAX}. Это максимум!` : 
+                         `Выбрано ${n} из ${MAX}. Можно продолжить или добавить ещё`;
+  $('next').disabled = n < MIN;
+  document.querySelectorAll('.chip').forEach(c => c.disabled = (n >= MAX && !S.sel.includes(c.dataset.v)));
+  $('tags').innerHTML = S.sel.slice().reverse().map(v => `<button class="tag" data-act="untick" data-v="${esc(v)}">${esc(v)}<span>×</span></button>`).join('');
+  $('tags').scrollTo(0, 0);
+  fade();
+}
+
+/* Тускнеющий край, если выбранные слова не помещаются */
+function fade() {
+  const t = $('tags'); if (!t) return;
+  const x = t.scrollWidth - t.clientWidth - t.scrollLeft;
+  const y = t.scrollHeight - t.clientHeight - t.scrollTop;
+  t.classList.toggle('more', x > 2 || y > 2);
+}
+app.addEventListener('scroll', e => { if (e.target.id === 'tags') fade(); }, true);
+window.addEventListener('resize', fade);
+
+function untick(v) {
+  S.sel = S.sel.filter(x => x !== v);
+  document.querySelectorAll('.chip').forEach(c => { if (c.dataset.v === v) c.classList.remove('on'); });
+  upd(); save();
+}
+
+function afterPick() {
+  S.pool = S.order.filter(v => S.sel.includes(v));
+  S.sel = S.pool.slice();
+  startCompare();
+}
+
+function startCompare() {
+  S.design = makeDesign(S.pool, S.pool.length > 12 ? 6 : 4);
+  S.ans = []; S.curBest = null; S.curWorst = null; S.tb = [];
+  go('compare');
+}
+
+function makeDesign(items, appear) {
+  const n = items.length; const size = n >= 8 ? 4 : 3; const screens = Math.ceil((n * appear) / size);
+  const pk = (a, b) => a < b ? K(a, b) : K(b, a);
+  let best = null, bestCost = Infinity;
+  for (let t = 0; t < 300; t++) {
+    const cnt = {}, pair = {}, design = [];
+    items.forEach(v => cnt[v] = 0);
+    for (let s = 0; s < screens; s++) {
+      const ch = [];
+      while (ch.length < size) {
+        let pickV = null, pickC = Infinity;
+        for (const v of items) {
+          if (ch.includes(v)) continue;
+          let pairSum = 0; for (const u of ch) pairSum += (pair[pk(u, v)] || 0);
+          const c = (cnt[v] * 100) + (pairSum * 10) + Math.random();
+          if (c < pickC) { pickC = c; pickV = v; }
+        }
+        ch.push(pickV);
+      }
+      ch.forEach(v => cnt[v]++);
+      for (let i = 0; i < ch.length; i++) for (let j = i + 1; j < ch.length; j++) { const k = pk(ch[i], ch[j]); pair[k] = (pair[k] || 0) + 1; }
+      design.push(shuffle(ch));
+    }
+    const pv = []; for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) pv.push(pair[pk(items[i], items[j])] || 0);
+    const m = pv.reduce((a, b) => a + b, 0) / pv.length;
+    const cost = pv.reduce((a, p) => a + (p - m) ** 2, 0) + Object.values(cnt).reduce((a, c) => a + (c - appear) ** 2 * 10, 0);
+    if (cost < bestCost) { bestCost = cost; best = design; }
+  }
+  return best;
+}
+
+function wins() {
+  const W = {}; const inc = (a, b) => { const k = K(a, b); W[k] = (W[k] || 0) + 1; };
+  S.ans.forEach((ans, i) => S.design[i].forEach(x => {
+    if (x !== ans.best) inc(ans.best, x);
+    if (x !== ans.best && x !== ans.worst) inc(x, ans.worst);
+  }));
+  return W;
+}
+
+function stats() {
+  const raw = {}, shown = {}, sc = {}, tb = {}, h = {}, W = wins();
+  S.pool.forEach(v => { raw[v] = shown[v] = tb[v] = h[v] = 0; });
+  S.design.slice(0, S.ans.length).forEach(scr => scr.forEach(v => shown[v]++));
+  S.ans.forEach(a => { raw[a.best]++; raw[a.worst]--; });
+  S.pool.forEach(v => sc[v] = shown[v] ? Math.round((raw[v] / shown[v]) * 1000) / 1000 : 0);
+  S.pool.forEach(v => S.pool.forEach(u => {
+    if (u !== v && sc[u] === sc[v]) h[v] += (W[K(v, u)] || 0) - (W[K(u, v)] || 0);
+  }));
+  S.tb.forEach((v, i) => tb[v] = S.tb.length - i);
+  const r = S.pool.slice().sort((a, b) => (sc[b] - sc[a]) || (h[b] - h[a]) || (tb[b] - tb[a]));
+  return { r, sc, h, tb };
+}
+
+function tieGroup() {
+  const { r, sc, h, tb } = stats(); const key = v => `${sc[v]}|${h[v]}|${tb[v]}`;
+  for (let i = 0; i < Math.min(TOP, r.length); i++) {
+    const g = r.filter(v => key(v) === key(r[i]));
+    if (g.length > 1) return g;
+  }
+  return null;
+}
+
+function conflicts() {
+  const W = wins(), P = S.pool, out = [];
+  for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
+    const a = P[i], b = P[j], na = W[K(a, b)] || 0, nb = W[K(b, a)] || 0;
+    if (na && nb && (S.result.includes(a) || S.result.includes(b))) out.push({ a, b, na, nb });
+  }
+  return out.sort((x, y) => Math.min(y.na, y.nb) - Math.min(x.na, x.nb) || (y.na + y.nb) - (x.na + x.nb)).slice(0, 4);
+}
+
+function compare() {
+  const i = S.ans.length, b = S.curBest, w = S.curWorst;
+  const next = ok => `<button class="primary" data-act="nextSet" ${ok ? '' : 'disabled'}>Дальше →</button>`;
+  
+  if (i < S.design.length) {
+    const scr = S.design[i], total = S.design.length;
+    frame(
+      `<div class="row">
+         <span class="stepno">Шаг 2 из 2</span>
+         <span class="progress-count">${i + 1} / ${total}</span>
+       </div>
+       <div class="bar"><i style="width:${(i / total) * 100}%"></i></div>
+       <h1>Что из этого важнее?</h1>
+       <p class="hint">Здесь будут только ценности, выбранные на первом шаге.<br>Теперь на каждом экране отметь две: самую важную и наименее важную.</p>`,
+      `<p class="opts-title ${b && !w ? 'low' : ''}">${!b ? 'Нажми на самую важную' : (!w ? 'Теперь — на наименее важную' : 'Готово, нажми «Дальше»')}</p>
+       <div class="opts ${b ? 'worst' : 'best'}">
+         ${scr.map((v, k) => opt(v, k, v === b ? 'on' : (v === w ? 'no' : ''))).join('')}
+       </div>`,
+      back() + reset(), next(b && w)
+    );
+    return;
+  }
+  
+  const g = tieGroup();
+  if (g) {
+    frame(
+      `<div class="row"><span class="stepno">Уточнение</span></div>
+       <div class="bar"><i style="width:100%"></i></div>
+       <h1>Почти готово</h1>
+       <p class="hint">Эти ценности оказались для тебя одинаково значимыми. Попробуй решить, какая хотя бы немного перевешивает.</p>`,
+      `<p class="opts-title">Какая из них чуть важнее?</p>
+       <div class="opts best">
+         ${g.map((v, k) => opt(v, k, v === b ? 'on' : '')).join('')}
+       </div>`,
+      back() + reset(), next(b)
+    );
+    return;
+  }
+  
+  const r = stats().r;
+  S.result = r.slice(0, TOP); S.rest = r.slice(TOP).sort((a, b) => a.localeCompare(b, 'ru')); S.date = date();
+  go('result');
+}
+
+function choose(v) {
+  if (v === S.curBest) { S.curBest = null; S.curWorst = null; } 
+  else if (!S.curBest || S.ans.length >= S.design.length) S.curBest = v; 
+  else S.curWorst = (S.curWorst === v) ? null : v;
+  render(true);
+}
+
+function nextSet() {
+  if (!S.curBest) return;
+  if (S.ans.length < S.design.length) {
+    if (!S.curWorst) return;
+    S.ans.push({ best: S.curBest, worst: S.curWorst });
+  } else S.tb.push(S.curBest);
+  S.curBest = null; S.curWorst = null;
+  render();
+}
+
+function undo() {
+  if (S.curWorst) { S.curWorst = null; return render(true); }
+  if (S.curBest) { S.curBest = null; return render(true); }
+  if (S.tb.length) { S.tb.pop(); return render(); }
+  if (S.ans.length) { S.ans.pop(); return render(); }
+  S.sel = S.pool.slice(); go('pick');
+}
+
+function backFromResult() { S.step = 'compare'; undo(); }
+
+document.addEventListener('keydown', e => {
+  if (!S || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'Backspace') { const b = app.querySelector('.back'); if (b) { e.preventDefault(); b.click(); } return; }
+  if (S.step !== 'compare') return;
+  
+  if (/^[0-9]$/.test(e.key)) {
+    e.preventDefault(); const opts = document.querySelectorAll('.opts button');
+    const press = () => { const o = opts[+kbuf - 1]; kclear(); if (o) o.click(); };
+    clearTimeout(ktimer); kbuf += e.key;
+    if (+kbuf * 10 > opts.length) press(); else ktimer = setTimeout(press, 600);
+  } else if (e.key === 'Enter') {
+    if (e.target.closest && e.target.closest('button:not(.opt)')) return;
+    e.preventDefault(); nextSet();
+  }
+});
+
+/* ===== РЕЗУЛЬТАТ ===== */
+function result() {
+  const C = conflicts();
+  const R = S.rest || [];
+  const title = S.pool.length <= TOP ? 'Твои ценности' : 'Топ-' + TOP;
+  
+  let extraHtml = '';
+  if (R.length || C.length) {
+    extraHtml += `<hr class="divider">`;
+    
+    if (R.length) {
+      extraHtml += `<p class="sub" style="margin-bottom:4px">Также важны</p>
+        <p class="hint" style="font-size:14px; margin-bottom:12px">Значимые ценности, которые не попали в топ:</p>
+        <ul class="res" style="margin-bottom:0">
+          ${R.map(v => `<li><span class="dot">•</span> ${esc(v)}</li>`).join('')}
+        </ul>`;
+    }
+    
+    if (R.length && C.length) {
+      extraHtml += `<hr class="divider">`;
+    }
+    
+    if (C.length) {
+      extraHtml += `<p class="sub" style="margin-bottom:4px">Сложный выбор</p>
+        <p class="hint" style="font-size:14px; margin-bottom:16px">В парах ниже выбор менялся: то одна ценность была важнее, то другая. Счёт показывает эти противоречия. То, что они есть — абсолютно нормально + их бывает интересно обсудить:</p>
+        <ul class="res conf">
+          ${C.map(c => `<li><span class="v">${esc(c.a)}</span><span class="score">${c.na} : ${c.nb}</span><span class="r">${esc(c.b)}</span></li>`).join('')}
+        </ul>`;
+    }
+  }
+
+  frame(
+    `<div class="row"><span class="stepno">Итог · ${S.date}</span></div>
+     <h1>${title}</h1>
+     <p class="hint">Результат можно скопировать, чтобы сохранить себе или с кем-нибудь поделиться.</p>`,
+    
+    `<p class="sub" style="margin-top:0; margin-bottom:4px">Главное сейчас</p>
+     <p class="hint" style="font-size:14px; margin-bottom:16px">Эти ценности оказались важнее остальных:</p>
+     <ol class="res" style="margin-bottom:0">
+       ${S.result.map((v, i) => `<li><span class="num">${i + 1}.</span> ${esc(v)}</li>`).join('')}
+     </ol>
+     ${extraHtml}
+     ${DONATE_URL ? `<hr class="divider">` : ''}
+     ${support()}`,
+    
+    back('backFromResult') + reset(),
+    `<button class="primary" data-act="copy">Скопировать</button>`
+  );
+}
+
+function copyRes(_, btn) {
+  const C = conflicts();
+  const R = S.rest || [];
+  
+  let t = `**Мои ценности** (${S.date})\n\nТоп:\n` + 
+          S.result.map((v, i) => `${i + 1}. ${v}`).join('\n');
+  
+  if (R.length || C.length) t += `\n\n---`;
+  if (R.length) t += `\n\nТакже важны:\n` + R.map(v => `• ${v}`).join('\n');
+  if (C.length) {
+    t += `\n\nСложный выбор:\n__(В этих парах выбор менялся. Счёт показывает, сколько раз каждая оказывалась важнее)__\n` + 
+         C.map(c => `• ${c.a} ${c.na} : ${c.nb} ${c.b}`).join('\n');
+  }
+  
+  const done = () => { btn.textContent = '✓ Скопировано'; setTimeout(() => { btn.textContent = 'Скопировать'; }, 2000); };
+  const fallback = () => { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); };
+  navigator.clipboard ? navigator.clipboard.writeText(t).then(done, fallback) : fallback();
+}
+
+function restart() {
+  S = { step: 'intro', order: shuffle(VALUES), sel: [], pool: [], design: [], ans: [], curBest: null, curWorst: null, tb: [], result: [], rest: [], date: '' };
+  render();
+}
+
+S = load();
+if (S) render(); else restart();
+</script>
+</body>
+</html>
