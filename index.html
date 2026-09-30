@@ -115,7 +115,7 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .opt.no::after { content: 'Наименее важная'; color: #B38914; }
 
 /* ===== Наведение ===== */
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   button:hover:not(:disabled):not(.on):not(.no):not(.ghost):not(.primary):not(.back) { border-color: var(--muted); }
   .primary:hover:not(:disabled) { background: var(--green-d); border-color: var(--green-d); }
   .ghost:hover { color: var(--text); background: rgba(0, 0, 0, .05); }
