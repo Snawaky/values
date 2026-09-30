@@ -370,7 +370,7 @@ function load() {
     const validStep = saved && ['intro', 'pick', 'compare', 'result'].includes(saved.step);
     if (validStep && Array.isArray(saved.order)) {
       if (!saved.sid) saved.sid = newSid();
-      if (saved.consent === undefined) saved.consent = true;
+      if (saved.consent === undefined) saved.consent = false;
       return saved;
     }
   } catch (e) {}
@@ -976,7 +976,7 @@ document.addEventListener('keydown', e => {
    ЗАПУСК
    ========================================================= */
 function restart() {
-  const consent = state ? state.consent : true;
+  const consent = state ? state.consent : false;
   if (state) flush();   // дослать события старого прохождения
   lastScreen = null;
   state = {
