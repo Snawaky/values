@@ -405,7 +405,8 @@ function flush() {
 
 // Экран сменился: записываем время на прошлом и открытие нового
 function trackScreen() {
-  const key = state.step + ':' + state.ans.length + ':' + state.tb.length;
+  const step = state.step === 'compare' && isTieBreak() ? 'tie' : state.step;
+  const key = step + ':' + state.ans.length + ':' + state.tb.length;
   if (lastScreen && lastScreen.key === key) return;
   if (lastScreen) log('screen', { at: lastScreen.key, ms: Date.now() - lastScreen.start });
   lastScreen = { key, start: Date.now() };
