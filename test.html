@@ -476,7 +476,7 @@ const supportBlock = () => !DONATE_URL ? '' : `
 function intro() {
   const consent = !LOG_URL ? '' : `
     <label class="consent"><input type="checkbox" id="consent" ${state.consent ? 'checked' : ''}>
-    <span>Отправлять анонимную статистику без выбранных ценностей, чтобы я мог улучшать упражнение</span></label>`;
+    <span>Делиться анонимной статистикой</span></label>`;
 
   frame(
     `<div class="row"><span class="stepno">Введение</span></div><div class="bar"></div>`,
