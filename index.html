@@ -237,7 +237,6 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   .support-link { background: transparent; color: var(--text); border-color: #4A5057; }
   .support-link:hover { background: var(--green); border-color: var(--green); color: #EDEFEC; }
   .support-qr { mix-blend-mode: normal; background: #fff; padding: 6px; box-sizing: border-box; }
-  .ghost:hover, .back:hover { background: rgba(255,255,255,.05); }
 }
 
 /* ===== Полоса прокрутки ===== */
@@ -253,6 +252,11 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 button {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+
+@media (prefers-color-scheme: dark) and (hover: hover) and (pointer: fine) {
+  .ghost:hover, .back:hover { background: rgba(255,255,255,.05); }
+}
+
 }
 </style>
 </head>
