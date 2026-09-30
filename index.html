@@ -992,7 +992,7 @@ document.addEventListener('keydown', e => {
    ЗАПУСК
    ========================================================= */
 function restart() {
-  const consent = false; // после «Начать заново» галочка снимается
+  const consent = state ? state.consent : false; // после «Начать заново» галочка сохраняется
   if (state && lastScreen) log('screen', { at: lastScreen.key, ms: Date.now() - lastScreen.start });
   if (state) flush();   // дослать события старого прохождения
   lastScreen = null;
