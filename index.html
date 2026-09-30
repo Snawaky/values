@@ -849,6 +849,7 @@ const ACTIONS = {
 app.addEventListener('click', e => {
   const el = e.target.closest('[data-act]');
   if (el && !el.disabled) ACTIONS[el.dataset.act](el.dataset.v, el);
+  if (document.activeElement) document.activeElement.blur();
 });
 
 /* --- Клавиатура: цифры выбирают вариант, Enter — «Дальше», Backspace — «Назад» --- */
