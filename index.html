@@ -136,6 +136,7 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   button:active:not(:disabled) { transform: scale(0.97); }
   .chip:active:not(.on):not(:disabled) { background: var(--green-l); border-color: var(--green); }
   .ghost:active, .back:active { background: var(--line); }
+  .primary:active:not(:disabled) { background: var(--green-d); border-color: var(--green-d); }
 }
 
 /* ===== Результат ===== */
@@ -821,14 +822,13 @@ function copyResult(_, btn) {
   const conf = conflicts();
   const rest = state.rest || [];
 
-  let text = `**Мои ценности** (${state.date})\n\nТоп:\n` +
+  let text = `Мои ценности (${state.date})\n\nТоп:\n` +
              state.result.map((v, i) => `${i + 1}. ${v}`).join('\n');
 
-  if (rest.length || conf.length) text += `\n\n---`;
-  if (rest.length) text += `\n\nТакже важны:\n` + rest.map(v => `• ${v}`).join('\n');
+  if (rest.length) text += `\n\nТакже важны:\n` + rest.map(v => `- ${v}`).join('\n');
   if (conf.length) {
-    text += `\n\nСложный выбор:\n__(В этих парах выбор менялся. Счёт показывает, сколько раз каждая оказывалась важнее)__\n` +
-            conf.map(c => `• ${c.a} ${c.aWins} : ${c.bWins} ${c.b}`).join('\n');
+    text += `\n\nСложный выбор (в этих парах выбор менялся, счёт показывает, сколько раз каждая оказывалась важнее):\n` +
+            conf.map(c => `- ${c.a} ${c.aWins} : ${c.bWins} ${c.b}`).join('\n');
   }
 
   const done = () => {
