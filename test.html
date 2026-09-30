@@ -34,6 +34,7 @@ p { margin: 0 0 16px; }
 .intro-time { color: var(--muted); margin-top: 24px; }   /* «Займёт около...» */
 .consent { flex: 1; min-width: 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted); line-height: 1.4; cursor: pointer; }
 .consent input { flex: none; margin: 2px 0 0; accent-color: var(--green); }
+.consent + .grow { display: none; }
 
 /* ===== Карточка ===== */
 .frame {
@@ -475,7 +476,7 @@ const supportBlock = () => !DONATE_URL ? '' : `
 function intro() {
   const consent = !LOG_URL ? '' : `
     <label class="consent"><input type="checkbox" id="consent" ${state.consent ? 'checked' : ''}>
-    <span>Отправлять анонимную статистику (без выбранных ценностей), чтобы я мог улучшать упражнение</span></label>`;
+    <span>Отправлять анонимную статистику без выбранных ценностей, чтобы я мог улучшать упражнение</span></label>`;
 
   frame(
     `<div class="row"><span class="stepno">Введение</span></div><div class="bar"></div>`,
