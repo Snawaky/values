@@ -822,14 +822,17 @@ function copyResult(_, btn) {
   const conf = conflicts();
   const rest = state.rest || [];
 
-  let text = `Мои ценности (${state.date})\n\nТоп:\n` +
-             state.result.map((v, i) => `${i + 1}. ${v}`).join('\n');
+  const S = '\u00A0'; // неразрывный пробел: Telegram на iPhone не делает из строк список
 
-  if (rest.length) text += `\n\nТакже важны:\n` + rest.map(v => `- ${v}`).join('\n');
+  let text = `Мои ценности (${state.date})\n\nТоп:\n` +
+             state.result.map((v, i) => `${i + 1}.${S}${v}`).join('\n');
+
+  if (rest.length) text += `\n\nТакже важны:\n` + rest.map(v => `-${S}${v}`).join('\n');
   if (conf.length) {
     text += `\n\nСложный выбор (в этих парах выбор менялся, счёт показывает, сколько раз каждая оказывалась важнее):\n` +
-            conf.map(c => `- ${c.a} ${c.aWins} : ${c.bWins} ${c.b}`).join('\n');
+            conf.map(c => `-${S}${c.a} ${c.aWins} : ${c.bWins} ${c.b}`).join('\n');
   }
+
 
   const done = () => {
     btn.textContent = '✓ Скопировано';
