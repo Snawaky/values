@@ -32,8 +32,8 @@ p { margin: 0 0 16px; }
 .hint { color: var(--muted); font-size: 15px; margin: 0; line-height: 1.5; }
 .note { font-size: 14px; margin-bottom: 16px; }          /* пояснение под заголовком раздела */
 .intro-time { color: var(--muted); margin-top: 24px; }   /* «Займёт около...» */
-.consent { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; color: var(--muted); line-height: 1.4; cursor: pointer; }
-.consent input { margin: 2px 0 0; accent-color: var(--green); }
+.consent { flex: 1; min-width: 0; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; color: var(--muted); line-height: 1.4; cursor: pointer; }
+.consent input { flex: none; margin: 2px 0 0; accent-color: var(--green); }
 
 /* ===== Карточка ===== */
 .frame {
@@ -475,7 +475,7 @@ const supportBlock = () => !DONATE_URL ? '' : `
 function intro() {
   const consent = !LOG_URL ? '' : `
     <label class="consent"><input type="checkbox" id="consent" ${state.consent ? 'checked' : ''}>
-    <span>Отправлять анонимную статистику прохождения (без выбранных ценностей), чтобы я мог улучшать упражнение</span></label>`;
+    <span>Отправлять анонимную статистику (без выбранных ценностей), чтобы я мог улучшать упражнение</span></label>`;
 
   frame(
     `<div class="row"><span class="stepno">Введение</span></div><div class="bar"></div>`,
@@ -483,9 +483,8 @@ function intro() {
      <p>Это упражнение поможет понять, что для тебя по-настоящему важно.</p>
      <p>Нужно будет выбрать ценности из списка и решить, какие из них важнее на данном этапе жизни.</p>
      <p>Прислушивайся к себе. Можно долго размышлять или выбирать первое, что придёт в голову. Главное — ориентируйся на собственные мысли и чувства, а не на то, как «должно быть».</p>
-     <p class="intro-time">Займёт около 25 минут.</p>
-     ${consent}`,
-    '',
+     <p class="intro-time">Займёт около 25 минут.</p>`,
+    consent,
     `<button class="primary" data-act="go" data-v="pick">Начать →</button>`
   );
 }
