@@ -71,7 +71,7 @@ button {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-button:disabled { opacity: 0.4; cursor: not-allowed; }
+button:disabled { opacity: 0.4; pointer-events: none; }
 button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 
 .primary { background: var(--green); color: #fff; border-color: var(--green); box-shadow: 0 4px 12px rgba(96, 128, 110, 0.2); }
@@ -923,11 +923,25 @@ const ACTIONS = {
   donate: () => flush() // ссылка откроется сама, просто сразу отправляем статистику
 };
 
+// Есть ли кнопка в точке клика. pad — запас в пикселях вокруг кнопки
+function buttonAt(x, y, sel, pad) {
+  return [...app.querySelectorAll(sel)].find(b => {
+    const r = b.getBoundingClientRect();
+    return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad;
+  });
+}
+
 app.addEventListener('click', e => {
   if (e.target.closest('.consent')) return; // галочку согласия не считаем
   const el = e.target.closest('[data-act]');
-  log(el ? el.dataset.act : 'miss'); // miss — клик мимо кнопок
-  if (el && !el.disabled) ACTIONS[el.dataset.act](el.dataset.v, el);
+  if (el) {
+    log(el.dataset.act);
+    ACTIONS[el.dataset.act](el.dataset.v, el);
+    return;
+  }
+  const off = buttonAt(e.clientX, e.clientY, 'button:disabled', 0);
+  if (off) return log('off:' + off.dataset.act);           // нажал серую кнопку
+  if (buttonAt(e.clientX, e.clientY, 'button', 12)) log('miss'); // промахнулся рядом
 });
 
 app.addEventListener('change', e => {
@@ -967,7 +981,8 @@ document.addEventListener('keydown', e => {
   } else if (e.key === 'Enter') {
     if (e.target.closest && e.target.closest('button:not(.opt)')) return;
     e.preventDefault();
-    log('nextSet');
+    const next = app.querySelector('[data-act="nextSet"]');
+    log(next && next.disabled ? 'off:nextSet' : 'nextSet');
     nextSet();
   }
 });
@@ -977,6 +992,7 @@ document.addEventListener('keydown', e => {
    ========================================================= */
 function restart() {
   const consent = state ? state.consent : false;
+  if (state && lastScreen) log('screen', { at: lastScreen.key, ms: Date.now() - lastScreen.start });
   if (state) flush();   // дослать события старого прохождения
   lastScreen = null;
   state = {
