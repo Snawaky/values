@@ -182,7 +182,7 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 
 /* ===== Телефон ===== */
 @media (max-width: 600px) {
-  :root { --gap: 12px; }
+  :root { --gap: 8px; }
   .frame { margin: 0; border-radius: 0; max-height: none; height: 100vh; height: 100dvh; box-shadow: none; border: none; }
   .head { padding: 24px 20px 16px; }
   .body { padding: 16px 20px 24px; }
@@ -203,6 +203,12 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 
   .support { flex-direction: column; text-align: center; padding: 20px; gap: 16px; }
   .support-qr { display: none; }
+
+   /* Итоги: больше места для слов в двух колонках */
+  .body { padding-left: 16px; padding-right: 16px; }
+  .res li { gap: 6px; }
+  .res.conf { grid-template-columns: auto 1fr calc(50% - var(--gap) / 2 - 30px); }
+  .res.conf .v { padding-left: 30px; }
 }
 
 /* Запасной вариант для старых iOS (до 16) */
