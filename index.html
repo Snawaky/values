@@ -257,6 +257,13 @@ button {
   .ghost:hover, .back:hover { background: rgba(255,255,255,.05); }
 }
 
+  /* Отклик на нажатие для телефонов */
+@media (hover: none) {
+  button:active:not(:disabled) { transform: scale(0.97); }
+  .chip:active:not(.on):not(:disabled) { background: var(--green-l); border-color: var(--green); }
+  .ghost:active, .back:active { background: var(--line); }
+}
+
 }
 </style>
 </head>
@@ -903,6 +910,9 @@ function restart() {
 
 state = load();
 if (state) render(); else restart();
+
+document.addEventListener('touchstart', () => {}, { passive: true });
+
 </script>
 </body>
 </html>
