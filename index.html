@@ -149,7 +149,7 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   margin-bottom: 8px; break-inside: avoid;
   min-width: 0; overflow-wrap: anywhere; hyphens: auto;
 }
-.res li .num { color: var(--muted); font-weight: 600; width: 18px; text-align: right; flex: none; }
+.res li .num { color: var(--muted); font-weight: 600; width: 24px; text-align: right; flex: none; }
 .res li .dot { color: var(--muted); opacity: 0.5; width: 18px; text-align: right; flex: none; }
 
 .divider { height: 1px; background: var(--line); border: none; margin: 32px 0; }
@@ -159,7 +159,7 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
    счёт посередине между самым длинным левым словом и правой колонкой */
 .res.conf {
   column-count: auto; display: grid;
-  grid-template-columns: auto 1fr calc(50% - var(--gap) / 2 - 28px);
+  grid-template-columns: auto 1fr calc(50% - var(--gap) / 2 - 34px);
 }
 .res.conf li {
   grid-column: 1 / -1; display: grid; grid-template-columns: subgrid;
@@ -167,7 +167,7 @@ button:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
   gap: 0; padding: 6px 0; margin-bottom: 0; border-bottom: 1px dashed var(--line);
 }
 .res.conf li:last-child { border-bottom: none; }
-.res.conf .v { grid-column: 1; padding-left: 28px; }
+.res.conf .v { grid-column: 1; padding-left: 34px; }
 .res.conf .score { grid-column: 2; text-align: center; padding: 0 12px; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .res.conf .r { grid-column: 3; }
 .res.conf .v, .res.conf .r { min-width: 0; overflow-wrap: anywhere; hyphens: auto; }
