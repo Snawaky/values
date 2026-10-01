@@ -393,7 +393,8 @@ function log(e, extra) {
 }
 
 function flush() {
-  if (!logBuf.length || !LOG_URL || !navigator.sendBeacon) { logBuf = []; return; }
+  if (!state || !state.consent || !LOG_URL || !navigator.sendBeacon) { logBuf = []; return; }
+  if (!logBuf.length) return;
   const ok = navigator.sendBeacon(LOG_URL, JSON.stringify({
     sid: state.sid,
     device: matchMedia('(hover: none)').matches ? 'телефон' : 'компьютер',
@@ -413,8 +414,8 @@ function trackScreen() {
   const step = state.step === 'compare' && isTieBreak() ? (findTie() ? 'tie' : 'result') : state.step;
   const key = step + ':' + state.ans.length + ':' + state.tb.length;
   if (lastScreen && lastScreen.key === key) return;
-  if (lastScreen) log('screen', { at: lastScreen.key, ms: activeMs() });
-  lastScreen = { key, start: document.hidden ? null : Date.now(), active: 0 };
+  if (lastScreen) log('screen', { at: lastScreen.key, ms: activeMs(), ts: lastScreen.opened });
+  lastScreen = { key, start: document.hidden ? null : Date.now(), active: 0, opened: Date.now() };
   log('open');
   flush();
 }
@@ -1005,7 +1006,7 @@ document.addEventListener('keydown', e => {
    ========================================================= */
 function restart() {
   const consent = state ? state.consent : false; // после «Начать заново» галочка сохраняется
-  if (state && lastScreen) log('screen', { at: lastScreen.key, ms: activeMs() });
+  if (state && lastScreen) log('screen', { at: lastScreen.key, ms: activeMs(), ts: lastScreen.opened });
   if (state) flush();   // дослать события старого прохождения
   lastScreen = null;
   state = {
