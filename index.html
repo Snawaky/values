@@ -956,7 +956,10 @@ app.addEventListener('click', e => {
 });
 
 app.addEventListener('change', e => {
-  if (e.target.id === 'consent') { state.consent = e.target.checked; save(); }
+  if (e.target.id !== 'consent') return;
+  state.consent = e.target.checked;
+  if (!state.consent) logBuf = [];
+  save();
 });
 
 // Запасная отправка при закрытии страницы
