@@ -928,7 +928,10 @@ const SCREENS = { intro, pick, compare, result };
 // Все кнопки работают через data-act="имя действия"
 const ACTIONS = {
   go,
-  reset: () => { if (confirm('Начать заново? Ответы удалятся.')) restart(); },
+  reset: () => {
+  if (confirm('Начать заново? Ответы удалятся.')) { log('reset'); restart(); }
+  else log('reset:cancel');
+},
   undo, backFromResult, toggle, untick, afterPick, choose, nextSet,
   copy: copyResult,
   donate: () => flush() // ссылка откроется сама, просто сразу отправляем статистику
@@ -946,7 +949,7 @@ app.addEventListener('click', e => {
   if (e.target.closest('.consent')) return; // галочку согласия не считаем
   const el = e.target.closest('[data-act]');
   if (el) {
-    log(el.dataset.act);
+    if (el.dataset.act !== 'reset') log(el.dataset.act);
     ACTIONS[el.dataset.act](el.dataset.v, el);
     return;
   }
