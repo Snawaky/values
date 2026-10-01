@@ -389,7 +389,7 @@ let logBuf = [], lastScreen = null;
 
 function log(e, extra) {
   if (!LOG_URL || !state || !state.consent) return;
-  logBuf.push(Object.assign({ e, at: lastScreen ? lastScreen.key : state.step }, extra));
+  logBuf.push(Object.assign({ e, ts: Date.now(), at: lastScreen ? lastScreen.key : state.step }, extra));
 }
 
 function flush() {
