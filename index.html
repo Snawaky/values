@@ -958,6 +958,9 @@ app.addEventListener('change', e => {
   if (e.target.id === 'consent') { state.consent = e.target.checked; save(); }
 });
 
+// Запасная отправка при закрытии страницы
+window.addEventListener('pagehide', flush);
+
 // iPhone: без этого не работает :active
 document.addEventListener('touchstart', () => {}, { passive: true });
 
