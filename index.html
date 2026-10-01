@@ -394,13 +394,13 @@ function log(e, extra) {
 
 function flush() {
   if (!logBuf.length || !LOG_URL || !navigator.sendBeacon) { logBuf = []; return; }
-  navigator.sendBeacon(LOG_URL, JSON.stringify({
+  const ok = navigator.sendBeacon(LOG_URL, JSON.stringify({
     sid: state.sid,
     device: matchMedia('(hover: none)').matches ? 'телефон' : 'компьютер',
     pool: state.pool.length,
     events: logBuf
   }));
-  logBuf = [];
+  if (ok || logBuf.length > 150) logBuf = [];
 }
 
 // Активное время на экране: без периодов, когда вкладка была скрыта
