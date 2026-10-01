@@ -390,18 +390,26 @@ let logBuf = [], lastScreen = null;
 function log(e, extra) {
   if (!LOG_URL || !state || !state.consent) return;
   logBuf.push(Object.assign({ e, ts: Date.now(), at: lastScreen ? lastScreen.key : state.step }, extra));
+  if (logBuf.length >= 50) flush();
 }
 
 function flush() {
   if (!state || !state.consent || !LOG_URL || !navigator.sendBeacon) { logBuf = []; return; }
-  if (!logBuf.length) return;
-  const ok = navigator.sendBeacon(LOG_URL, JSON.stringify({
-    sid: state.sid,
-    device: matchMedia('(hover: none)').matches ? 'телефон' : 'компьютер',
-    pool: state.pool.length,
-    events: logBuf
-  }));
-  if (ok || logBuf.length > 150) logBuf = [];
+
+  // Отправляем порциями по 100 событий: сервер принимает не больше 200 за раз
+  while (logBuf.length) {
+    const part = logBuf.slice(0, 100);
+    const ok = navigator.sendBeacon(LOG_URL, JSON.stringify({
+      sid: state.sid,
+      device: matchMedia('(hover: none)').matches ? 'телефон' : 'компьютер',
+      pool: state.pool.length,
+      events: part
+    }));
+    if (!ok) break;              // браузер не принял, попробуем позже
+    logBuf.splice(0, part.length);
+  }
+
+  if (logBuf.length > 300) logBuf = []; // защита от бесконечного роста
 }
 
 // Активное время на экране: без периодов, когда вкладка была скрыта
